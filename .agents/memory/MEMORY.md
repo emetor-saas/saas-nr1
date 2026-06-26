@@ -1,0 +1,5 @@
+- [API Proxy Setup](api-proxy.md) — Vite proxy must be configured in vite.config.ts to route /api calls to port 8080 (api-server).
+- [pg Externalization](pg-build.md) — `pg` package must be added to the `external` list in `build.mjs` for esbuild to resolve it correctly.
+- [Anthropic AI Phone Verification](anthropic-setup.md) — Anthropic AI integration via Replit requires phone verification before setupReplitAIIntegrations succeeds.
+- [OpenAPI Codegen Collision Fix](codegen-collision.md) — Orval generates duplicate XxxParams when path+query params coexist; remove query params from endpoints with path params to avoid TS2308 export collision.
+- [Replit Auth quirks](replit-auth-quirks.md) — profileImageUrl (not profileImage) in auth route; replit-auth-web lib needs composite:true + cast import.meta as unknown for BASE_URL; drizzle push fails without TTY, use psql directly.
