@@ -1,0 +1,2020 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API for NR-1 Psychosocial Risk Management & AI Recruitment SaaS
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: tenants
+    description: Tenant & subscription management
+  - name: organizations
+    description: Organizational structure
+  - name: users
+    description: User management
+  - name: nr1-campaigns
+    description: NR-1 risk campaigns
+  - name: nr1-responses
+    description: Campaign responses
+  - name: nr1-risk
+    description: Risk analysis and matrix
+  - name: nr1-actions
+    description: Action plans
+  - name: nr1-documents
+    description: Documents and signatures
+  - name: recruitment-jobs
+    description: Job postings
+  - name: recruitment-candidates
+    description: Candidate management
+  - name: recruitment-folders
+    description: Talent pool folders
+  - name: recruitment-ai
+    description: AI analysis for recruitment
+  - name: dashboard
+    description: Dashboard summaries
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ── TENANT ──────────────────────────────────────────────────────────────
+  /tenants/me:
+    get:
+      operationId: getCurrentTenant
+      tags: [tenants]
+      summary: Get current tenant info
+      responses:
+        "200":
+          description: Tenant info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+    patch:
+      operationId: updateTenant
+      tags: [tenants]
+      summary: Update tenant settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+
+  /tenants/subscription:
+    get:
+      operationId: getSubscription
+      tags: [tenants]
+      summary: Get current subscription details
+      responses:
+        "200":
+          description: Subscription info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscription"
+
+  /tenants/modules:
+    get:
+      operationId: getActiveModules
+      tags: [tenants]
+      summary: Get enabled modules for current tenant
+      responses:
+        "200":
+          description: Active modules
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActiveModules"
+
+  # ── DASHBOARD ────────────────────────────────────────────────────────────
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Executive dashboard summary
+      responses:
+        "200":
+          description: Summary metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  # ── ORGANIZATIONS & UNITS ────────────────────────────────────────────────
+  /organizations/units:
+    get:
+      operationId: listUnits
+      tags: [organizations]
+      summary: List organizational units
+      responses:
+        "200":
+          description: List of units
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Unit"
+    post:
+      operationId: createUnit
+      tags: [organizations]
+      summary: Create organizational unit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnitInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+
+  /organizations/units/{unitId}:
+    patch:
+      operationId: updateUnit
+      tags: [organizations]
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnitUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+    delete:
+      operationId: deleteUnit
+      tags: [organizations]
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /organizations/workers:
+    get:
+      operationId: listWorkers
+      tags: [organizations]
+      summary: List workers (employees)
+      parameters:
+        - name: unitId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List of workers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Worker"
+    post:
+      operationId: createWorker
+      tags: [organizations]
+      summary: Add worker
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkerInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Worker"
+
+  # ── NR-1 CAMPAIGNS ──────────────────────────────────────────────────────
+  /nr1/campaigns:
+    get:
+      operationId: listCampaigns
+      tags: [nr1-campaigns]
+      summary: List NR-1 campaigns
+      responses:
+        "200":
+          description: Campaigns list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Campaign"
+    post:
+      operationId: createCampaign
+      tags: [nr1-campaigns]
+      summary: Create campaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /nr1/campaigns/{campaignId}:
+    get:
+      operationId: getCampaign
+      tags: [nr1-campaigns]
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Campaign
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+    patch:
+      operationId: updateCampaign
+      tags: [nr1-campaigns]
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /nr1/campaigns/{campaignId}/publish:
+    post:
+      operationId: publishCampaign
+      tags: [nr1-campaigns]
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /nr1/campaigns/{campaignId}/close:
+    post:
+      operationId: closeCampaign
+      tags: [nr1-campaigns]
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Closed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /nr1/campaigns/{campaignId}/stats:
+    get:
+      operationId: getCampaignStats
+      tags: [nr1-campaigns]
+      summary: Campaign participation stats (anonymized counts)
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampaignStats"
+
+  # ── NR-1 RESPONSES ──────────────────────────────────────────────────────
+  /nr1/campaigns/{campaignId}/respond:
+    post:
+      operationId: submitResponse
+      tags: [nr1-responses]
+      summary: Submit campaign response (worker endpoint, pseudonymized)
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResponseInput"
+      responses:
+        "201":
+          description: Response recorded
+
+  /nr1/campaigns/{campaignId}/aggregate:
+    get:
+      operationId: getCampaignAggregate
+      tags: [nr1-responses]
+      summary: Aggregated results (privacy-threshold enforced, n>=7)
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Aggregated results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AggregateResult"
+
+  # ── NR-1 RISK ANALYSIS ───────────────────────────────────────────────────
+  /nr1/campaigns/{campaignId}/risk-factors:
+    get:
+      operationId: listRiskFactors
+      tags: [nr1-risk]
+      summary: List identified risk factors
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Risk factors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RiskFactor"
+    post:
+      operationId: createRiskFactor
+      tags: [nr1-risk]
+      summary: Identify risk factor
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskFactorInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskFactor"
+
+  /nr1/risk-factors/{riskFactorId}:
+    patch:
+      operationId: updateRiskFactor
+      tags: [nr1-risk]
+      parameters:
+        - name: riskFactorId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskFactorUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskFactor"
+
+  /nr1/campaigns/{campaignId}/risk-matrix:
+    get:
+      operationId: getRiskMatrix
+      tags: [nr1-risk]
+      summary: Get risk matrix for campaign
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Risk matrix
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskMatrix"
+
+  /nr1/campaigns/{campaignId}/ai-suggest:
+    post:
+      operationId: aiSuggestRisks
+      tags: [nr1-risk]
+      summary: AI suggestion for risk grouping and action plan draft
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: AI suggestions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AISuggestion"
+
+  # ── NR-1 ACTION PLANS ────────────────────────────────────────────────────
+  /nr1/campaigns/{campaignId}/actions:
+    get:
+      operationId: listActions
+      tags: [nr1-actions]
+      summary: List action plan items
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Actions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Action"
+    post:
+      operationId: createAction
+      tags: [nr1-actions]
+      summary: Create action
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Action"
+
+  /nr1/actions/{actionId}:
+    patch:
+      operationId: updateAction
+      tags: [nr1-actions]
+      parameters:
+        - name: actionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActionUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Action"
+
+  # ── NR-1 DOCUMENTS ───────────────────────────────────────────────────────
+  /nr1/campaigns/{campaignId}/documents:
+    get:
+      operationId: listDocuments
+      tags: [nr1-documents]
+      summary: List documents for campaign
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+    post:
+      operationId: createDocument
+      tags: [nr1-documents]
+      summary: Create document
+      parameters:
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+
+  /nr1/documents/{documentId}:
+    get:
+      operationId: getDocument
+      tags: [nr1-documents]
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+    patch:
+      operationId: updateDocument
+      tags: [nr1-documents]
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+
+  /nr1/documents/{documentId}/publish:
+    post:
+      operationId: publishDocument
+      tags: [nr1-documents]
+      summary: Publish document (requires psychologist role)
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+
+  # ── RECRUITMENT JOBS ─────────────────────────────────────────────────────
+  /recruitment/jobs:
+    get:
+      operationId: listJobs
+      tags: [recruitment-jobs]
+      summary: List job postings
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: departmentId
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Job"
+    post:
+      operationId: createJob
+      tags: [recruitment-jobs]
+      summary: Create job posting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+
+  /recruitment/jobs/{jobId}:
+    get:
+      operationId: getJob
+      tags: [recruitment-jobs]
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+    patch:
+      operationId: updateJob
+      tags: [recruitment-jobs]
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+    delete:
+      operationId: deleteJob
+      tags: [recruitment-jobs]
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /recruitment/jobs/{jobId}/candidates:
+    get:
+      operationId: listJobCandidates
+      tags: [recruitment-jobs]
+      summary: List candidates in job pipeline
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Candidates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CandidateSummary"
+
+  /recruitment/jobs/{jobId}/pipeline-stats:
+    get:
+      operationId: getJobPipelineStats
+      tags: [recruitment-jobs]
+      summary: Pipeline stage counts for a job
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Pipeline stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PipelineStats"
+
+  # ── RECRUITMENT CANDIDATES ───────────────────────────────────────────────
+  /recruitment/candidates:
+    get:
+      operationId: listCandidates
+      tags: [recruitment-candidates]
+      summary: List all candidates
+      parameters:
+        - name: folderId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: search
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Candidates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CandidateSummary"
+    post:
+      operationId: createCandidate
+      tags: [recruitment-candidates]
+      summary: Add candidate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CandidateInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Candidate"
+
+  /recruitment/candidates/{candidateId}:
+    get:
+      operationId: getCandidate
+      tags: [recruitment-candidates]
+      parameters:
+        - name: candidateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Candidate detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Candidate"
+    patch:
+      operationId: updateCandidate
+      tags: [recruitment-candidates]
+      parameters:
+        - name: candidateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CandidateUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Candidate"
+
+  /recruitment/candidates/{candidateId}/move-stage:
+    post:
+      operationId: moveCandidateStage
+      tags: [recruitment-candidates]
+      summary: Move candidate to pipeline stage
+      parameters:
+        - name: candidateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StageMove"
+      responses:
+        "200":
+          description: Stage updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Candidate"
+
+  # ── RECRUITMENT FOLDERS ──────────────────────────────────────────────────
+  /recruitment/folders:
+    get:
+      operationId: listFolders
+      tags: [recruitment-folders]
+      summary: List talent pool folders
+      responses:
+        "200":
+          description: Folders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Folder"
+    post:
+      operationId: createFolder
+      tags: [recruitment-folders]
+      summary: Create folder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FolderInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Folder"
+
+  /recruitment/folders/{folderId}:
+    patch:
+      operationId: updateFolder
+      tags: [recruitment-folders]
+      parameters:
+        - name: folderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FolderUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Folder"
+    delete:
+      operationId: deleteFolder
+      tags: [recruitment-folders]
+      parameters:
+        - name: folderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /recruitment/folders/{folderId}/candidates:
+    get:
+      operationId: getFolderCandidates
+      tags: [recruitment-folders]
+      summary: Get candidates in folder
+      parameters:
+        - name: folderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Candidates in folder
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CandidateSummary"
+    post:
+      operationId: addCandidateToFolder
+      tags: [recruitment-folders]
+      summary: Add candidate to folder
+      parameters:
+        - name: folderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FolderCandidateInput"
+      responses:
+        "201":
+          description: Added
+
+  # ── RECRUITMENT AI ───────────────────────────────────────────────────────
+  /recruitment/candidates/{candidateId}/analyze:
+    post:
+      operationId: analyzeCandidateProfile
+      tags: [recruitment-ai]
+      summary: AI analysis of candidate profile
+      parameters:
+        - name: candidateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileAnalysisRequest"
+      responses:
+        "200":
+          description: AI analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CandidateAIAnalysis"
+
+  /recruitment/jobs/{jobId}/cultural-fit-config:
+    get:
+      operationId: getCulturalFitConfig
+      tags: [recruitment-ai]
+      summary: Get cultural fit configuration for job
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CulturalFitConfig"
+    put:
+      operationId: setCulturalFitConfig
+      tags: [recruitment-ai]
+      summary: Set cultural fit configuration
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CulturalFitConfigInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CulturalFitConfig"
+
+  /recruitment/jobs/{jobId}/compare-candidates:
+    post:
+      operationId: compareCandidates
+      tags: [recruitment-ai]
+      summary: Compare candidates for a job (radar chart data)
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompareRequest"
+      responses:
+        "200":
+          description: Comparison data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComparisonResult"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    # ── TENANT ────────────────────────────────────────────────────────────
+    Tenant:
+      type: object
+      required: [id, name, plan, activeModules, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        cnpj:
+          type: ["string", "null"]
+        plan:
+          type: string
+          enum: [essencial, gestao, enterprise, profissional]
+        activeModules:
+          type: array
+          items:
+            type: string
+        privacyThreshold:
+          type: integer
+        createdAt:
+          type: string
+
+    TenantUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        cnpj:
+          type: string
+        privacyThreshold:
+          type: integer
+
+    Subscription:
+      type: object
+      required: [plan, status, currentPeriodEnd]
+      properties:
+        plan:
+          type: string
+        status:
+          type: string
+        currentPeriodEnd:
+          type: string
+        activeWorkers:
+          type: integer
+        modules:
+          type: array
+          items:
+            type: string
+
+    ActiveModules:
+      type: object
+      required: [modules]
+      properties:
+        modules:
+          type: array
+          items:
+            type: string
+
+    # ── DASHBOARD ─────────────────────────────────────────────────────────
+    DashboardSummary:
+      type: object
+      required: [nr1, recruitment]
+      properties:
+        nr1:
+          type: object
+          properties:
+            activeCampaigns:
+              type: integer
+            avgParticipation:
+              type: number
+            openActions:
+              type: integer
+            criticalRisks:
+              type: integer
+            documentsAwaitingSignature:
+              type: integer
+        recruitment:
+          type: object
+          properties:
+            openJobs:
+              type: integer
+            totalCandidates:
+              type: integer
+            avgFitScore:
+              type: number
+            candidatesThisMonth:
+              type: integer
+
+    # ── ORGANIZATION ──────────────────────────────────────────────────────
+    Unit:
+      type: object
+      required: [id, name, tenantId, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        tenantId:
+          type: integer
+        parentId:
+          type: ["integer", "null"]
+        description:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    UnitInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        parentId:
+          type: ["integer", "null"]
+        description:
+          type: string
+
+    UnitUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
+    Worker:
+      type: object
+      required: [id, displayName, unitId, status, createdAt]
+      properties:
+        id:
+          type: integer
+        displayName:
+          type: string
+        email:
+          type: ["string", "null"]
+        unitId:
+          type: integer
+        unitName:
+          type: string
+        role:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [active, inactive, leave]
+        createdAt:
+          type: string
+
+    WorkerInput:
+      type: object
+      required: [displayName, unitId]
+      properties:
+        displayName:
+          type: string
+        email:
+          type: string
+        unitId:
+          type: integer
+        role:
+          type: string
+
+    # ── NR-1 CAMPAIGN ──────────────────────────────────────────────────────
+    Campaign:
+      type: object
+      required: [id, title, status, tenantId, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [draft, published, closed, analyzing]
+        tenantId:
+          type: integer
+        targetUnitIds:
+          type: array
+          items:
+            type: integer
+        instrumentType:
+          type: string
+          enum: [demand_control, effort_reward, custom]
+        privacyThreshold:
+          type: integer
+        startDate:
+          type: ["string", "null"]
+        endDate:
+          type: ["string", "null"]
+        totalInvited:
+          type: integer
+        totalResponded:
+          type: integer
+        participationRate:
+          type: ["number", "null"]
+        createdAt:
+          type: string
+
+    CampaignInput:
+      type: object
+      required: [title, instrumentType]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        instrumentType:
+          type: string
+          enum: [demand_control, effort_reward, custom]
+        targetUnitIds:
+          type: array
+          items:
+            type: integer
+        privacyThreshold:
+          type: integer
+        startDate:
+          type: string
+        endDate:
+          type: string
+
+    CampaignUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        endDate:
+          type: string
+
+    CampaignStats:
+      type: object
+      required: [totalInvited, totalResponded, participationRate, belowThreshold]
+      properties:
+        totalInvited:
+          type: integer
+        totalResponded:
+          type: integer
+        participationRate:
+          type: number
+        belowThreshold:
+          type: boolean
+        byUnit:
+          type: array
+          items:
+            type: object
+            properties:
+              unitId:
+                type: integer
+              unitName:
+                type: string
+              responded:
+                type: integer
+              invited:
+                type: integer
+              rate:
+                type: number
+              belowThreshold:
+                type: boolean
+
+    ResponseInput:
+      type: object
+      required: [answers]
+      properties:
+        token:
+          type: ["string", "null"]
+        answers:
+          type: object
+          additionalProperties:
+            type: ["string", "number", "boolean"]
+
+    AggregateResult:
+      type: object
+      required: [campaignId, sampleSize, belowThreshold]
+      properties:
+        campaignId:
+          type: integer
+        sampleSize:
+          type: integer
+        belowThreshold:
+          type: boolean
+        dimensions:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              label:
+                type: string
+              average:
+                type: number
+              distribution:
+                type: object
+        openCommentsSummary:
+          type: ["string", "null"]
+
+    # ── NR-1 RISK ──────────────────────────────────────────────────────────
+    RiskFactor:
+      type: object
+      required: [id, campaignId, title, probability, severity, level, createdAt]
+      properties:
+        id:
+          type: integer
+        campaignId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        probability:
+          type: string
+          enum: [very_low, low, medium, high, very_high]
+        severity:
+          type: string
+          enum: [very_low, low, medium, high, very_high]
+        level:
+          type: string
+          enum: [low, moderate, high, critical]
+        exposedGroups:
+          type: ["string", "null"]
+        existingControls:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    RiskFactorInput:
+      type: object
+      required: [title, probability, severity]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        probability:
+          type: string
+          enum: [very_low, low, medium, high, very_high]
+        severity:
+          type: string
+          enum: [very_low, low, medium, high, very_high]
+        exposedGroups:
+          type: string
+        existingControls:
+          type: string
+
+    RiskFactorUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        probability:
+          type: string
+          enum: [very_low, low, medium, high, very_high]
+        severity:
+          type: string
+          enum: [very_low, low, medium, high, very_high]
+        exposedGroups:
+          type: string
+        existingControls:
+          type: string
+
+    RiskMatrix:
+      type: object
+      required: [campaignId, factors]
+      properties:
+        campaignId:
+          type: integer
+        factors:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskFactor"
+        summary:
+          type: object
+          properties:
+            critical:
+              type: integer
+            high:
+              type: integer
+            moderate:
+              type: integer
+            low:
+              type: integer
+
+    AISuggestion:
+      type: object
+      required: [groups, actionDrafts, disclaimer]
+      properties:
+        groups:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+              factors:
+                type: array
+                items:
+                  type: string
+        actionDrafts:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              priority:
+                type: string
+        disclaimer:
+          type: string
+
+    # ── NR-1 ACTION ────────────────────────────────────────────────────────
+    Action:
+      type: object
+      required: [id, campaignId, title, status, priority, createdAt]
+      properties:
+        id:
+          type: integer
+        campaignId:
+          type: integer
+        riskFactorId:
+          type: ["integer", "null"]
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [pending, in_progress, done, cancelled]
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        responsible:
+          type: ["string", "null"]
+        dueDate:
+          type: ["string", "null"]
+        controlHierarchy:
+          type: ["string", "null"]
+        evidence:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    ActionInput:
+      type: object
+      required: [title, priority]
+      properties:
+        riskFactorId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        responsible:
+          type: string
+        dueDate:
+          type: string
+        controlHierarchy:
+          type: string
+
+    ActionUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [pending, in_progress, done, cancelled]
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        responsible:
+          type: string
+        dueDate:
+          type: string
+        evidence:
+          type: string
+
+    # ── NR-1 DOCUMENT ──────────────────────────────────────────────────────
+    Document:
+      type: object
+      required: [id, campaignId, title, type, status, version, createdAt]
+      properties:
+        id:
+          type: integer
+        campaignId:
+          type: integer
+        title:
+          type: string
+        type:
+          type: string
+          enum: [risk_inventory, assessment_report, action_plan, devolutiva]
+        status:
+          type: string
+          enum: [draft, review, published]
+        version:
+          type: integer
+        content:
+          type: ["string", "null"]
+        hash:
+          type: ["string", "null"]
+        signedBy:
+          type: ["string", "null"]
+        signedAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    DocumentInput:
+      type: object
+      required: [title, type]
+      properties:
+        title:
+          type: string
+        type:
+          type: string
+          enum: [risk_inventory, assessment_report, action_plan, devolutiva]
+        content:
+          type: string
+
+    DocumentUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        status:
+          type: string
+          enum: [draft, review, published]
+
+    # ── RECRUITMENT JOB ────────────────────────────────────────────────────
+    Job:
+      type: object
+      required: [id, title, status, tenantId, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        department:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        requirements:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [draft, open, paused, closed]
+        tenantId:
+          type: integer
+        totalCandidates:
+          type: integer
+        createdAt:
+          type: string
+
+    JobInput:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+        department:
+          type: string
+        description:
+          type: string
+        requirements:
+          type: string
+
+    JobUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        department:
+          type: string
+        description:
+          type: string
+        requirements:
+          type: string
+        status:
+          type: string
+          enum: [draft, open, paused, closed]
+
+    PipelineStats:
+      type: object
+      required: [jobId, stages]
+      properties:
+        jobId:
+          type: integer
+        stages:
+          type: array
+          items:
+            type: object
+            properties:
+              stage:
+                type: string
+              count:
+                type: integer
+
+    # ── RECRUITMENT CANDIDATE ─────────────────────────────────────────────
+    CandidateSummary:
+      type: object
+      required: [id, name, stage, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: ["string", "null"]
+        jobId:
+          type: ["integer", "null"]
+        jobTitle:
+          type: ["string", "null"]
+        stage:
+          type: string
+          enum: [screening, interview, offer, hired, rejected]
+        fitScore:
+          type: ["number", "null"]
+        createdAt:
+          type: string
+
+    Candidate:
+      type: object
+      required: [id, name, stage, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        jobId:
+          type: ["integer", "null"]
+        jobTitle:
+          type: ["string", "null"]
+        stage:
+          type: string
+          enum: [screening, interview, offer, hired, rejected]
+        cvText:
+          type: ["string", "null"]
+        linkedinUrl:
+          type: ["string", "null"]
+        githubUrl:
+          type: ["string", "null"]
+        portfolioUrl:
+          type: ["string", "null"]
+        skills:
+          type: array
+          items:
+            type: string
+        experience:
+          type: ["string", "null"]
+        education:
+          type: ["string", "null"]
+        fitScore:
+          type: ["number", "null"]
+        fitJustification:
+          type: ["string", "null"]
+        fitDimensions:
+          type: ["object", "null"]
+          additionalProperties:
+            type: number
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    CandidateInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        jobId:
+          type: integer
+        cvText:
+          type: string
+        linkedinUrl:
+          type: string
+        githubUrl:
+          type: string
+        portfolioUrl:
+          type: string
+        notes:
+          type: string
+
+    CandidateUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        cvText:
+          type: string
+        linkedinUrl:
+          type: string
+        notes:
+          type: string
+
+    StageMove:
+      type: object
+      required: [stage]
+      properties:
+        stage:
+          type: string
+          enum: [screening, interview, offer, hired, rejected]
+        note:
+          type: string
+
+    # ── RECRUITMENT FOLDER ────────────────────────────────────────────────
+    Folder:
+      type: object
+      required: [id, name, tenantId, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        department:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        tenantId:
+          type: integer
+        candidateCount:
+          type: integer
+        createdAt:
+          type: string
+
+    FolderInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        department:
+          type: string
+        description:
+          type: string
+
+    FolderUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        department:
+          type: string
+        description:
+          type: string
+
+    FolderCandidateInput:
+      type: object
+      required: [candidateId]
+      properties:
+        candidateId:
+          type: integer
+
+    # ── RECRUITMENT AI ─────────────────────────────────────────────────────
+    ProfileAnalysisRequest:
+      type: object
+      required: [jobId]
+      properties:
+        jobId:
+          type: integer
+        forceRefresh:
+          type: boolean
+
+    CandidateAIAnalysis:
+      type: object
+      required: [candidateId, fitScore, fitJustification, disclaimer]
+      properties:
+        candidateId:
+          type: integer
+        fitScore:
+          type: number
+        fitJustification:
+          type: string
+        fitDimensions:
+          type: object
+          additionalProperties:
+            type: number
+        strengths:
+          type: array
+          items:
+            type: string
+        attentionPoints:
+          type: array
+          items:
+            type: string
+        suggestedInterviewQuestions:
+          type: array
+          items:
+            type: string
+        disclaimer:
+          type: string
+
+    CulturalFitConfig:
+      type: object
+      required: [jobId, updatedAt]
+      properties:
+        jobId:
+          type: integer
+        companyValues:
+          type: array
+          items:
+            type: string
+        requiredCompetencies:
+          type: array
+          items:
+            type: string
+        idealPersonaDescription:
+          type: ["string", "null"]
+        updatedAt:
+          type: string
+
+    CulturalFitConfigInput:
+      type: object
+      required: [companyValues, requiredCompetencies]
+      properties:
+        companyValues:
+          type: array
+          items:
+            type: string
+        requiredCompetencies:
+          type: array
+          items:
+            type: string
+        idealPersonaDescription:
+          type: string
+
+    CompareRequest:
+      type: object
+      required: [candidateIds]
+      properties:
+        candidateIds:
+          type: array
+          items:
+            type: integer
+
+    ComparisonResult:
+      type: object
+      required: [jobId, candidates, dimensions]
+      properties:
+        jobId:
+          type: integer
+        candidates:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              fitScore:
+                type: number
+              dimensions:
+                type: object
+                additionalProperties:
+                  type: number
+        dimensions:
+          type: array
+          items:
+            type: string
