@@ -133,7 +133,7 @@ export default function CandidatesPage() {
         linkedinUrl: data.linkedinUrl || undefined,
         jobId: data.jobId ? Number(data.jobId) : undefined,
       };
-      const candidate = await apiRequest("POST", "/recruitment/candidates", payload);
+      const candidate = await apiRequest("POST", "/recruitment/candidates", payload) as any;
       return { candidate, shouldAnalyze: data.autoAnalyze && !!data.cvText, jobId: data.jobId };
     },
     onSuccess: async ({ candidate, shouldAnalyze, jobId }) => {
@@ -148,7 +148,7 @@ export default function CandidatesPage() {
         try {
           const result = await apiRequest("POST", `/recruitment/candidates/${candidate.id}/analyze`, {
             jobId: jobId ? Number(jobId) : undefined,
-          });
+          }) as any;
           qc.invalidateQueries({ queryKey: ["candidates"] });
           toast({ title: `Análise concluída! Fit Score: ${Math.round(result.fitScore)}%` });
         } catch {
